@@ -1,0 +1,27 @@
+PyVFW WILL BE another implementation with python
+for 'Video for Windows' or DirectShow(DMO),
+witch is OS-indipendent and pluggable with vfw-codecs
+such as Lagarith, UtVideo, ..etc.
+
+not under GPL, but under BSD license.
+
+Features(Airms):
+  - get fourCC infomation from AVI
+  - decode frames from a avi
+  - encode a video within post frames in Python
+
+You can install and test pyvfw as follows:
+  1. download pyvfw.py to your current directory or site-packages
+
+So you can encode/decode raw-AVI streams.
+If you encode/decode with some codec,
+
+  2. download your specified codec(e.g. Lagarith.dll) and put current directory.
+
+  3. call pyvfw and add support the codec.
+
+
+Please report issues as well as configuration details for your working 
+PyVFW installations at <k.kanryu@gmail.com>
+
+Thus, your feedback is welcome at <k.kanryu@gmail.com>.
