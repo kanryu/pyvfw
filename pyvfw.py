@@ -13,15 +13,21 @@
 
 import sys
 import ctypes
-from ctypes import windll, c_int, c_char_p, c_uint, byref, c_void_p, Structure
+from ctypes import windll, c_int, c_char_p, c_uint, byref, c_void_p, Structure, c_wchar
 
 def mmioFOURCC(*lst):
     result = 0
     for s in reversed(lst):
         result = ord(s) + result * 256
-#        print result, s, ord(s)
     return result
 
+def FOURCC_to_string(cc):
+    result = ''
+    for i in range(4):
+        c = cc & 0xff
+        cc = cc >> 8
+        result += chr(c)
+    return result
 
 # VFW codec constant values
 DRVCNF_CANCEL      = 0x0000
@@ -141,12 +147,28 @@ class ICOPEN(Structure):
         ('dnDevNode', c_uint),
     ]
 
+class ICINFO(Structure):
+    _fields_ = [
+        ('dwSize', c_uint),
+        ('fccType', c_uint),
+        ('fccHandler', c_uint),
+        ('dwFlags', c_uint),
+        ('dwVersion', c_uint),
+        ('dwVersionICM', c_uint),
+        ('szName', c_wchar * 16),
+        ('szDescription', c_wchar * 128),
+        ('szDriver', c_wchar * 128),
+    ]
+
+
+
 class DriverVFW(object):
     def __init__(self, name):
         self.driver = ctypes.WinDLL(name)
         print self.driver
         self.proc = self.driver.DriverProc
         print self.proc
+        self.icinfo = None
 
     def open(self):
         self.icopen = ICOPEN()
@@ -171,8 +193,12 @@ class DriverVFW(object):
     def set_state(self, lparam1, lparam2):
         return self._call(ICM_SETSTATE, byref(lparam1), lparam2)
 
-    def get_info(self, icinfo, lparam2):
-        return self._call(ICM_GETINFO, byref(lparam1), lparam2)
+    def get_info(self):
+        if self.icinfo: return self.icinfo
+        self.icinfo = ICINFO()
+        self.icinfo.dwSize = ctypes.sizeof(self.icinfo)
+        self._call(ICM_GETINFO, byref(self.icinfo), self.icinfo.dwSize)
+        return self.icinfo
 
     def dialog_configure(self, hwnd=c_int(-1)):
         return self._call(ICM_CONFIGURE, byref(hwnd), 0)
@@ -224,10 +250,41 @@ class DriverVFW(object):
         return self._call(ICM_DECOMPRESS_END, 0, 0)
         
 
-if __name__ == '__main__':
-    drv = DriverVFW("Lagarith")
-    drv.open()
-    print drv.get_defaultquality()
-    drv.close()
-    sys.exit()
+class VFW(object):
+    def __init__(self):
+        self.drivers = dict()
+        """fourCC to driver"""
+        
+        self.driver_names = dict()
+        """name to driver"""
 
+    def register_driver(self, name):
+        drv = DriverVFW(name)
+        drv.open()
+        info = drv.get_info()
+        fcc = FOURCC_to_string(info.fccHandler)
+        self.drivers[fcc] = drv
+        self.driver_names[name] = drv
+
+if __name__ == '__main__':
+#    drv = DriverVFW("Lagarith")
+#    print FOURCC_to_string(ICM_FRAMERATE)
+#    drv.open()
+#    print drv.get_defaultquality()
+#    info = drv.get_info()
+#    print "[info]"
+#    print info.fccType
+#    print info.fccHandler
+#    print info.dwFlags
+#    print info.dwVersion
+#    print info.dwVersionICM
+#    print info.szName
+#    print info.szDescription
+#    print info.szDriver
+#    drv.close()
+#    sys.exit()
+
+    vfw = VFW()
+    vfw.register_driver("Lagarith")
+    print vfw.drivers
+    print vfw.driver_names

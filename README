@@ -1,6 +1,6 @@
 PyVFW WILL BE another implementation with python
-for 'Video for Windows' or DirectShow(DMO),
-witch is OS-indipendent and pluggable with vfw-codecs
+for 'Video for Windows'(VCM) and DirectShow(DMO),
+witch is OS-independent and pluggable with vfw-codecs
 such as Lagarith, UtVideo, ..etc.
 
 not under GPL, but under BSD license.
